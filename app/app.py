@@ -3,11 +3,15 @@ Semantic Retrieval System API
 '''
 from flask import Flask, request, jsonify, Response
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.utils import secure_filename
 import os
 from datetime import datetime, timedelta
 import secrets
 
 app = Flask(__name__)
+
+UPLOAD_FOLDER = 'uploads'
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
     'DATABASE_URL',
@@ -98,6 +102,50 @@ def login_user():
         return jsonify(
             error="Invalid credentials"
         ), 401
+    
+@app.route('/documents', methods=['POST'])
+def upload_document():
+    auth_header = request.headers.get('Authorization')
+
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return jsonify(
+            error="Missing or invalid token"
+        ), 401
+
+    session_token = auth_header.split(' ')[1]
+    session = db.session.query(Session).filter_by(session_id=session_token).first()
+
+    if not session:
+        return jsonify(
+            error="Invalid credentials"
+        ), 401
+
+    if 'file' not in request.files:
+        return jsonify(
+            error="No file uploaded"
+        ), 400
+
+    file = request.files['file']
+
+    if file.filename == '':
+        return jsonify(
+            error="Empty filename"
+        ), 400
+
+    if not file.filename.lower().endswith('.pdf'):
+        return jsonify(
+            error="Only PDF files are allowed"
+        ), 400
+
+    filename = secure_filename(file.filename)
+    filepath = os.path.join(UPLOAD_FOLDER, filename)
+    file.save(filepath)
+
+    return jsonify(
+        message="PDF uploaded, processing started",
+        document_id=filename,
+        status="processing"
+    ), 202
     
 # Database initialization
 
