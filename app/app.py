@@ -19,7 +19,6 @@ import uuid
 
 app = Flask(__name__)
 CORS(app)
-app.secret_key="secret key"
 
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
