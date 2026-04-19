@@ -23,6 +23,7 @@ async function login(){
             const data = await response.json(); 
             const token = data.token;   
             localStorage.setItem('session_token', token)
+            console.log(token)
         }else{
             const data = await response.json(); 
             const error = data.error;

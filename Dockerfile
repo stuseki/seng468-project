@@ -13,4 +13,5 @@ COPY ./app /app
 EXPOSE 8080 
 
 # Run application
-CMD ["python", "app.py"]
+#CMD ["python", "app.py"]
+CMD ["python", "-m", "cProfile", "-o", "app.prof", "app.py"]
